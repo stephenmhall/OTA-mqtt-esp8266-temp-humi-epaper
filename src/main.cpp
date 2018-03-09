@@ -314,14 +314,14 @@ void checkForUpdates() {
       display.print(FW_VERSION);
       display.setCursor(4, 32);
       display.print("Available FW :");
-      display.print(newFWVersion);
+      display.print(version);
       display.setCursor(4, 60);
       display.print("Updating!");
       display.update();
 
       String fwImageURL = fwURL;
       String fwImageURLEnd = "_";
-      fwImageURLEnd.concat(newFWVersion);
+      fwImageURLEnd.concat(version);
       fwImageURLEnd.concat( ".bin" );
       fwImageURL.concat(fwImageURLEnd);
 
@@ -432,7 +432,7 @@ void publishData(){
   raw = analogRead(A0);
   Serial.print(raw);
   volt=raw/1023.0;
-  volt=volt*7.1026;
+  volt=volt*v_reference;
   Serial.print(" Battery Voltage: ");
   Serial.print(volt);
   Serial.print("V - ");
