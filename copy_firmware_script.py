@@ -13,6 +13,7 @@ firmware_board = env['BOARD']
 firmware_name = env['PROGNAME'] + ".bin"
 firmware_version = env['BUILD_FLAGS'][1].split('=')[-1]
 unit_name = env['BUILD_FLAGS'][0].split('=')[-1]
+v_reference = env['BUILD_FLAGS'][5].split('=')[-1]
 
 firmware_source = firmware_folder + "\\" + firmware_board + "\\" + firmware_name
 
@@ -24,15 +25,16 @@ print "Copying \n" + firmware_source + " \nto " + ota_folder
 def copyFirmware(src, dest):
     copyfile(src, dest)
 
-def writeVersion(dest, version):
+def writeVersion(dest, data):
     print "writing version file"
     with open(dest, 'w') as f:
-        f.write(version)
+        f.write(data)
 
 def before_upload(source, target, env):
     print "before upload"
     copyFirmware(firmware_source, ota_folder + firmware_name)
-    writeVersion((ota_folder + unit_name + ".version"),firmware_version)
+    writeVersion((ota_folder + unit_name + ".version"),
+                 "{},{}".format(firmware_version, v_reference))
 
 
 env.AddPreAction("upload", before_upload)
