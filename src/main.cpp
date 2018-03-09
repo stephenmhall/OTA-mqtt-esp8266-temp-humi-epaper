@@ -456,9 +456,9 @@ void showFont()
   //battery
   display.setFont(&FreeMonoBold12pt7b);
   display.setTextColor(GxEPD_BLACK);
-  if (level <= 10) {
-    display.setTextColor(GxEPD_RED);
-  }
+  // if (level <= 10) {
+  //   display.setTextColor(GxEPD_RED);
+  // }
   display.setCursor(04, 74);
   display.print(level);
   display.print("%");
@@ -466,7 +466,8 @@ void showFont()
   //Day / Night
   display.setCursor(90, 74);
   if (dayMode) {
-    display.setTextColor(GxEPD_RED);
+    //display.setTextColor(GxEPD_RED);
+    display.setTextColor(GxEPD_BLACK);
     display.print("D");
   }
   else{
@@ -482,13 +483,13 @@ void showFont()
   display.setFont(&FreeSans18pt7b);
   display.setTextSize(2);
   display.setCursor(8, 136);
-  display.setTextColor(GxEPD_RED);
+  //display.setTextColor(GxEPD_RED);
   display.print(temperature, 1);
   display.setTextSize(1);
   display.println("C");
 
   display.setCursor(8, 196);
-  display.setTextColor(GxEPD_BLACK);
+  //display.setTextColor(GxEPD_BLACK);
   display.setTextSize(2);
   display.print(humidity, 1);
   display.setTextSize(1);
