@@ -437,7 +437,7 @@ void publishData(){
   Serial.print(volt);
   Serial.print("V - ");
 
-  level = map((volt * 1000), 3200, 4180, 0, 100);
+  level = map((volt * 1000), 3200, 4200, 0, 100);
   Serial.print(level);
   Serial.println("%");
   if (level > 100) {
