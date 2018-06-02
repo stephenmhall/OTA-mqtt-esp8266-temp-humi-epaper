@@ -174,6 +174,8 @@ IPAddress ip(192, 168, 0, 201);// 92 for LUX81
 IPAddress gateway(192,168,0,1);
 IPAddress subnet(255,255,255,0);
 const char* mqtt_server = "192.168.0.39";
+String ipAddress;
+String macAddress;
 int timeInterval = 300; // seconds
 long rssi;
 unsigned char rssi_level;
@@ -189,8 +191,8 @@ int theMinuteB;
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
-char msg[50];
-char msg2[50];
+char msg[150];
+char msg2[150];
 
 //For battery voltage
 unsigned int raw=0;
@@ -382,6 +384,29 @@ void setup_wifi() {
   Serial.print("RSSI: ");
   Serial.println(rssi);
   Serial.println(rssi_level);
+  ipAddress = WiFi.localIP().toString();
+  macAddress = WiFi.macAddress();
+}
+
+void checkBattery() {
+  // Get battery Voltage
+  raw = analogRead(A0);
+  Serial.print(raw);
+  volt=raw/1023.0;
+  volt=volt*v_reference;
+  Serial.print(" Battery Voltage: ");
+  Serial.print(volt);
+  Serial.print("V - ");
+
+  level = map((volt * 1000.0), 3200.0, 4200.0, 0, 100);
+  Serial.print(level);
+  Serial.println("%");
+  if(level < 0){
+    level = 0;
+  }
+  if (level > 100) {
+    level = 100;
+  }
 }
 
 void publishData(){
@@ -428,31 +453,16 @@ void publishData(){
       humStatus = 1;
     }
   }
-  // Get battery Voltage
-  raw = analogRead(A0);
-  Serial.print(raw);
-  volt=raw/1023.0;
-  volt=volt*v_reference;
-  Serial.print(" Battery Voltage: ");
-  Serial.print(volt);
-  Serial.print("V - ");
-
-  level = map((volt * 1000), 3200, 4200, 0, 100);
-  Serial.print(level);
-  Serial.println("%");
-  if (level > 100) {
-    level = 100;
-  }
 
   //snprintf (msg2, 75, "{\"idx\": %s , \"nvalue\": 0, \"svalue\": \"%.2f\", \"Battery\": %d}", domoticzID.c_str(), LUX, level);
-  snprintf (msg2, 100, "{\"idx\": %d , \"nvalue\": 0, \"svalue\": \"%.2f;%.2f;%d\", \"Battery\": %d, \"RSSI\": %d}", domoticzID, temperature, humidity, humStatus, level, rssi_level);
+  snprintf (msg, 150, "{\"idx\": %d , \"nvalue\": 0, \"svalue\": \"%.2f;%.2f;%d\", \"Battery\": %d, \"RSSI\": %d}", domoticzID, temperature, humidity, humStatus, level, rssi_level);
 
   //String payload = "{\"idx\": " + domoticzID + ", \"nvalue\": 0, \"svalue\": \"" + event.light + "\", \"Battery\": " + level + "}";
   for (size_t i = 0; i < 1; i++) {
-    client.publish("domoticz/in", msg2, true);
+    client.publish("domoticz/in", msg, true);
     Serial.print("Message sent :");
     Serial.println(i);
-    Serial.println(msg2);
+    Serial.println(msg);
     delay(250);
   }
 }
@@ -532,14 +542,18 @@ void reconnect() {
 
       char charBuf[20];
       BOARD_ID.toCharArray(charBuf, 20);
+      char payload[120];
 
-      snprintf (msg, 75, "{\"Board_ID\": \"%s\" , \"firmware\": %d}", charBuf, FW_VERSION);
+      snprintf (payload, 120, "{\"Board_ID\": \"%s\", \"IP\": \"%s\", \"MAC\": \"%s\", \"Battery\": %d, \"firmware\": %d}",
+      charBuf,
+      ipAddress.c_str(),
+      macAddress.c_str(),
+      level,
+      FW_VERSION);
 
-      //snprintf (msg2, 75, "{\"idx\": 86 , \"nvalue\": 0, \"svalue\": \"39.00\", \"Battery\": 100}");
+      client.publish("ota_firmware", payload, true);
 
-      client.publish("ota_firmware", msg, true);
-      // Move the main publish
-      /* Get a new sensor event */
+      delay(250);
       publishData();
 
 
@@ -581,6 +595,7 @@ void setup() {
 
 void loop() {
   getServerTime();
+  checkBattery();
   checkForUpdates();
 
   if (!client.connected()) {
